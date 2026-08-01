@@ -1,4 +1,4 @@
-from queries import (get_transaction_history, get_watchlist, get_invested_stocks, get_popular_stocks_by_age)
+from queries import (get_transaction_history, get_watchlist, get_invested_stocks, get_popular_stocks_by_age, insert_transaction_history, check_stock)
 
 while True:
     print("==== 투자 포트폴리오 관리 시스템 ====")
@@ -6,7 +6,8 @@ while True:
     print("2. 관심 종목 조회")
     print("3. 현재 투자 중인 관심 종목 조회")
     print("4. 연령대별 인기 종목 조회")
-    print("5. 종료")
+    print("5. 거래 내역 입력")
+    print("6. 종료")
     choice=input("메뉴를 선택하세요.:")
 
     if choice=="1":
@@ -56,6 +57,19 @@ while True:
             print('-'*25)
 
     elif choice=='5':
+        member_id=int(input("회원번호를 입력하세요.:"))
+        stock_code=input("종목 코드를 입력하세요.:")
+        if not check_stock(stock_code):
+            print("존재하지 않는 종목입니다. 다시 입력하거나 등록 신청을 해주세요.")
+            continue
+        transaction_date=input("거래 날짜를 입력하세요.(YYYY-MM-DD):")
+        transaction_type=input("거래 유형을 입력하세요.(buy/sell):")
+        quantity=int(input("거래 수량을 입력하세요.:"))
+        price=int(input("거래 가격(1주)을 입력하세요.:"))
+        insert_transaction_history(member_id, stock_code, transaction_date, transaction_type, quantity, price)
+        print("거래 내역이 성공적으로 입력되었습니다.")
+
+    elif choice=='6':
         print("프로그램을 종료합니다.")
         break
 
