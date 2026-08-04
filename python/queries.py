@@ -178,3 +178,48 @@ def delete_watchlist(member_id, stock_code):
 
     cursor.close()
     conn.close()
+
+# 회원 가입 
+def register_member(name,email, password, birth_date):
+    conn=get_connection()
+    cursor=conn.cursor()
+
+    cursor.execute("""insert into MEMBER(name,email,password,birth_date)
+    values(%s,%s,%s,%s);""",(name,email,password,birth_date))
+
+    conn.commit()
+
+    cursor.close()
+    conn.close()
+
+# 이미 가입한 회원인지 확인 
+def check_member(email):
+    conn=get_connection()
+    cursor=conn.cursor()
+
+    cursor.execute("""select count(*) from MEMBER where email=%s;""",(email,))
+
+    result=cursor.fetchone()
+
+    cursor.close()
+    conn.close()
+
+    return result[0]>0
+
+# 로그인 함수 
+def login(email, password):
+    conn=get_connection()
+    cursor=conn.cursor()
+
+    cursor.execute("""select member_id from MEMBER where email=%s and password=%s;""",(email,password))
+
+    result=cursor.fetchone()
+
+    cursor.close()
+    conn.close()
+
+    if result:
+        return result[0]
+    else:
+        return None
+
