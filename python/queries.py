@@ -104,3 +104,76 @@ def get_popular_stocks_by_age():
     conn.close()
 
     return result
+
+# 사용자가 거래 내역을 입력 
+def insert_transaction_history(member_id, stock_code, transaction_date, transaction_type, quantity, price):
+    conn=get_connection()
+    cursor=conn.cursor()
+
+    cursor.execute("""
+    insert into TRANSACTION_HISTORY (member_id, stock_code, transaction_date, transaction_type, quantity, price)
+    values (%s, %s, %s, %s, %s, %s);
+    """,(member_id, stock_code, transaction_date, transaction_type, quantity, price))
+
+    conn.commit()
+
+    cursor.close()
+    conn.close()
+
+# 존재하는 종목인지 확인 
+def check_stock(stock_code):
+    conn=get_connection()
+    cursor=conn.cursor()
+
+    cursor.execute("""
+    select count(*) from STOCK where stock_code = %s;
+    """,(stock_code,))
+
+    result=cursor.fetchone()
+
+    cursor.close()
+    conn.close()
+
+    return result is not None
+
+# 사용자의 입력을 받아 관심종목 추가하기 
+def insert_watchlist(member_id, stock_code):
+    conn=get_connection()
+    cursor=conn.cursor()
+
+    cursor.execute("""
+    insert into WATCHLIST (member_id, stock_code)
+    values (%s, %s);
+    """,(member_id, stock_code))
+
+    conn.commit()
+
+    cursor.close()
+    conn.close()
+
+# 거래 내역 삭제 
+def delete_transaction_history(transaction_id):
+    conn=get_connection()
+    cursor=conn.cursor()
+
+    cursor.execute("""
+    delete from TRANSACTION_HISTORY where transaction_id = %s;
+    """,(transaction_id,))
+
+    conn.commit()
+
+    cursor.close()
+    conn.close()
+
+def delete_watchlist(member_id, stock_code):
+    conn=get_connection()
+    cursor=conn.cursor()
+
+    cursor.execute("""
+    delete from WATCHLIST where stock_code = %s and member_id = %s;
+    """,(stock_code,member_id))
+
+    conn.commit()
+
+    cursor.close()
+    conn.close()
