@@ -1,4 +1,4 @@
-from queries import (get_transaction_history, get_watchlist, get_invested_stocks, get_popular_stocks_by_age, insert_transaction_history, check_stock)
+from queries import (get_transaction_history, get_watchlist, get_invested_stocks, get_popular_stocks_by_age, insert_transaction_history, check_stock, insert_watchlist, delete_transaction_history, delete_watchlist)
 
 while True:
     print("==== 투자 포트폴리오 관리 시스템 ====")
@@ -7,15 +7,19 @@ while True:
     print("3. 현재 투자 중인 관심 종목 조회")
     print("4. 연령대별 인기 종목 조회")
     print("5. 거래 내역 입력")
-    print("6. 종료")
+    print("6. 관심 종목 입력")
+    print("7. 거래 내역 삭제")
+    print("8. 관심 종목 삭제")
+    print("9. 종료")
     choice=input("메뉴를 선택하세요.:")
 
     if choice=="1":
         member_id=int(input("회원번호를 입력하세요.:"))
         result=get_transaction_history(member_id)
         print("========= 거래 내역 =========")
-        for row in result:
+        for i,row in enumerate(result,start=1):
             t_id,s_code, s_name, t_date, t_type, t_amount, t_price=row
+            print(f"등록 순번: {i}")
             print(f"종목 코드: {s_code}")
             print(f"종목명: {s_name}")
             print(f"거래 날짜: {t_date}")
@@ -70,6 +74,32 @@ while True:
         print("거래 내역이 성공적으로 입력되었습니다.")
 
     elif choice=='6':
+        member_id=int(input("회원번호를 입력하세요.:"))
+        stock_code=input("관심 종목 코드를 입력하세요.:")
+        if not check_stock(stock_code):
+            print("존재하지 않는 종목입니다. 다시 입력하거나 등록 신청을 해주세요.")
+            continue
+        insert_watchlist(member_id, stock_code)
+        print("관심 종목이 성공적으로 추가되었습니다.")
+
+    elif choice=='7':
+        member_id=int(input("회원번호를 입력하세요.:"))
+        delete_id = int(input("삭제할 거래 ID를 입력하세요: "))
+        result=get_transaction_history(member_id)
+        transaction_id=result[delete_id-1][0]
+
+        delete_transaction_history(transaction_id)
+        print("거래 내역이 성공적으로 삭제되었습니다.")
+
+    elif choice=='8':
+        member_id=int(input("회원번호를 입력하세요.:"))
+        delete_code = input("삭제할 관심 종목 코드를 입력하세요: ")
+
+        delete_watchlist(member_id,delete_code)
+        print("관심 종목이 성공적으로 삭제되었습니다.")
+        
+
+    elif choice=='9':
         print("프로그램을 종료합니다.")
         break
 
