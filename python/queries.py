@@ -134,7 +134,7 @@ def check_stock(stock_code):
     cursor.close()
     conn.close()
 
-    return result is not None
+    return result[0]>0
 
 # 사용자의 입력을 받아 관심종목 추가하기 
 def insert_watchlist(member_id, stock_code):
@@ -165,6 +165,7 @@ def delete_transaction_history(transaction_id):
     cursor.close()
     conn.close()
 
+# 관심 종목 삭제 
 def delete_watchlist(member_id, stock_code):
     conn=get_connection()
     cursor=conn.cursor()
