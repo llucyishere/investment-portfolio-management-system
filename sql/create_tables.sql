@@ -36,3 +36,14 @@ create table WATCHLIST(
     foreign key (stock_code) references STOCK(stock_code),
     unique(member_id, stock_code)
 );  
+
+create table STOCK_REQUEST(
+    request_id int primary key auto_increment, 
+    member_id int not null, 
+    stock_code varchar(6) not null, 
+    stock_name varchar(255) not null, 
+    request_date date not null, 
+    status varchar(6) not null default '대기', 
+    foreign key(member_id) references member(member_id)
+);
+

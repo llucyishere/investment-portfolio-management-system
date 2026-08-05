@@ -151,6 +151,20 @@ def insert_watchlist(member_id, stock_code):
     cursor.close()
     conn.close()
 
+# 이미 등록된 관심종목인지 확인 
+def check_watchlist(member_id,stock_code):
+    conn=get_connection()
+    cursor=conn.cursor()
+
+    cursor.execute("""select count(*) from watchlist where stock_code=%s and member_id=%s""",(stock_code,member_id))
+
+    result = cursor.fetchone()
+
+    cursor.close()
+    conn.close()
+
+    return result[0]>0
+
 # 거래 내역 삭제 
 def delete_transaction_history(transaction_id):
     conn=get_connection()
@@ -223,3 +237,77 @@ def login(email, password):
     else:
         return None
 
+# 등록된 주식 목록 조회 
+def view_stocks():
+    conn=get_connection()
+    cursor=conn.cursor()
+
+    cursor.execute("""select stock_code, stock_name from STOCK;""")
+
+    result=cursor.fetchall()
+
+    cursor.close()
+    conn.close()
+
+    return result
+
+# 주식 등록 요청 저장 
+def stock_request(member_id, stock_code, stock_name, request_date):
+    conn=get_connection()
+    cursor=conn.cursor()
+
+    cursor.execute("""INSERT INTO STOCK_REQUEST(member_id, stock_code, stock_name, request_date)
+    values(%s, %s, %s, %s)""",(member_id, stock_code, stock_name, request_date))
+
+    conn.commit()
+
+    cursor.close()
+    conn.close()
+
+# 이미 등록 요청된 주식인지 확인 
+def check_request(stock_code):
+    conn=get_connection()
+    cursor=conn.cursor()
+
+    cursor.execute("""select count(*) from stock_request where stock_code=%s;""",(stock_code,))
+
+    result=cursor.fetchone()
+
+    cursor.close()
+    conn.close()
+
+    return result[0]>0
+
+# 등록 요청 조회 
+def show_request():
+    conn=get_connection()
+    cursor=conn.cursor()
+
+    cursor.execute("""select * from stock_request where status="대기";""")
+
+    result=cursor.fetchall()
+
+    cursor.close()
+    conn.close()
+
+    return result 
+
+# 요청 등록 처리 
+def confirm_request(request_id):
+    conn=get_connection()
+    cursor=conn.cursor()
+
+    # 선택한 요청의 요청 내용 정보 가져옴 
+    cursor.execute("""select stock_code, stock_name from stock_request where request_id=%s""",
+                    (request_id,))
+    stock=cursor.fetchone()
+    # 가져온 요청 내용을 stock에 저장 
+    cursor.execute("""insert into stock(stock_code, stock_name) values(%s, %s)""", 
+                   stock)
+    # 요청 처리 상태 업데이트 
+    cursor.execute("""update stock_request set status=%s where request_id=%s""",("처리",request_id,))
+
+    conn.commit()
+
+    cursor.close()
+    conn.close()
