@@ -1,5 +1,5 @@
 from queries import (login, register_member, check_member
-                     ,get_transaction_history, insert_transaction_history, delete_transaction_history
+                     ,get_transaction_history, insert_transaction_history, delete_transaction_history, get_current_holdings
                      ,get_watchlist, insert_watchlist, delete_watchlist, check_stock, check_watchlist
                      ,get_popular_stocks_by_age, view_stocks 
                      ,stock_request, check_request, show_request, confirm_request)
@@ -121,8 +121,14 @@ if page=="transaction_history":
             df=df.drop(columns=["거래 ID"])
             df.insert(0,"등록 순번",range(1,len(df)+1))
             df["거래 가격(1주)"]=df["거래 가격(1주)"].apply(lambda x: f"{x:,}")
-
             st.dataframe(df)
+
+            st.write("현재 보유 종목")
+            result2=get_current_holdings(st.session_state.member_id)
+            df2=pd.DataFrame(result2, 
+                             columns=["종목 코드","종목명","보유 수량"])
+            st.dataframe(df2)
+
         else:
             st.write("저장된 거래 내역이 없습니다.")
 
