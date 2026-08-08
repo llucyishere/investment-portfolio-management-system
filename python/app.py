@@ -1,11 +1,22 @@
+# 기능별 함수 
 from queries import (login, register_member, check_member
                      ,get_transaction_history, insert_transaction_history, delete_transaction_history, get_current_holdings
                      ,get_watchlist, insert_watchlist, delete_watchlist, check_stock, check_watchlist
                      ,get_popular_stocks_by_age, view_stocks 
                      ,stock_request, check_request, show_request, confirm_request)
+# 날짜 데이터 사용을 위함 
 from datetime import date 
+# UI 생성 
 import streamlit as st
+# DataFrame 형식 사용 
 import pandas as pd
+# 데이터 시각화 
+import matplotlib.pyplot as plt 
+# 그래프 눈금 조절 
+from matplotlib.ticker import MultipleLocator
+
+# 한글 폰트 설정 
+plt.rcParams["font.family"] = "AppleGothic"
 
 # 초기 상태 설정 
 if "member_id" not in st.session_state:
@@ -67,12 +78,26 @@ page = st.session_state.get("page", "home")
 if page=="home":
     if st.session_state.member_id:
         st.title(f"{st.session_state.email}님, 환영합니다!")
-        st.write("연령대별 최다 인기 종목 현황")
+
+        st.subheader("연령대별 최다 인기 종목 현황")
+
         result=get_popular_stocks_by_age()
         df=pd.DataFrame(result,
                         columns=["연령대","종목 코드","종목명","관심 인원 수"]
                             )
-        st.dataframe(df)
+
+        age=st.selectbox("연령대를 선택하세요.",sorted(df["연령대"].unique()),
+                         format_func=lambda x: f"{x}대")
+        df_age=df[df["연령대"]==age].sort_values("관심 인원 수", ascending=False)
+
+        st.dataframe(df_age, hide_index=True)
+
+        df_age=df[df["연령대"]==age].sort_values("관심 인원 수", ascending=True)
+        plt.barh(df_age["종목명"], df_age["관심 인원 수"])
+        plt.xlabel("관심 인원 수")
+        plt.gca().xaxis.set_major_locator(MultipleLocator(1))
+        st.pyplot(plt)
+
     else:
         st.title("주렁주렁")
         st.write("개인 투자 포트폴리오 관리 웹 서비스입니다. 로그인 후 기능들을 이용할 수 있습니다.")
@@ -121,13 +146,18 @@ if page=="transaction_history":
             df=df.drop(columns=["거래 ID"])
             df.insert(0,"등록 순번",range(1,len(df)+1))
             df["거래 가격(1주)"]=df["거래 가격(1주)"].apply(lambda x: f"{x:,}")
-            st.dataframe(df)
+            st.dataframe(df, hide_index=True)
 
-            st.write("현재 보유 종목")
+            st.subheader("현재 보유 종목")
             result2=get_current_holdings(st.session_state.member_id)
             df2=pd.DataFrame(result2, 
                              columns=["종목 코드","종목명","보유 수량"])
-            st.dataframe(df2)
+            st.dataframe(df2, hide_index=True)
+
+            plt.bar(df2["종목명"], df2["보유 수량"], width=0.2)
+            plt.xlabel("종목명")
+            plt.ylabel("보유 수량")
+            st.pyplot(plt)
 
         else:
             st.write("저장된 거래 내역이 없습니다.")
@@ -144,7 +174,7 @@ if page=="insert_transaction_history":
         df=pd.DataFrame(result,
                         columns=["종목 코드","종목명"]
                             )
-        st.dataframe(df)
+        st.dataframe(df, hide_index=True)
 
         stock_code = st.text_input("종목 코드:")
         transaction_date = st.date_input("거래 날짜:", value=date.today(), min_value=date(1900,1,1), max_value=date.today())
@@ -173,7 +203,7 @@ if page=="delete_transaction_history":
             df.insert(0,"등록 순번",range(1,len(df)+1))
             df["거래 가격(1주)"]=df["거래 가격(1주)"].apply(lambda x: f"{x:,}")
 
-            st.dataframe(df)
+            st.dataframe(df, hide_index=True)
 
             delete_id = st.number_input("삭제할 거래 등록 순번을 입력하세요:", min_value=1, max_value=len(df), step=1)
             if st.button("삭제하기"):
@@ -198,7 +228,7 @@ if page=="watchlist":
                                 )
             df=df.drop(columns=["관심 목록 ID"])
             df.insert(0,"등록 순번",range(1,len(df)+1))
-            st.dataframe(df)
+            st.dataframe(df, hide_index=True)
         else:
             st.write("저장된 관심 종목이 없습니다.")
 
@@ -214,7 +244,7 @@ if page=="insert_watchlist":
         df=pd.DataFrame(result,
                         columns=["종목 코드","종목명"]
                             )
-        st.dataframe(df)
+        st.dataframe(df, hide_index=True)
 
         stock_code = st.text_input("관심 종목 코드:")
         if st.button("추가하기"):
@@ -240,7 +270,7 @@ if page=="delete_watchlist":
                                 )
             df=df.drop(columns=["관심 목록 ID"])
             df.insert(0,"등록 순번",range(1,len(df)+1))
-            st.dataframe(df)
+            st.dataframe(df, hide_index=True)
 
             delete_code = st.text_input("삭제할 관심 종목 코드를 입력하세요:")
             if st.button("삭제하기"):
@@ -279,7 +309,7 @@ if page=="request_manage":
     if result:
         df=pd.DataFrame(result,
                         columns=["등록 순번","회원 ID", "종목 코드","종목 이름","등록 날짜","처리 상태"])
-        st.dataframe(df)
+        st.dataframe(df, hide_index=True)
 
         request_id=st.number_input("등록 처리할 순번을 입력하세요.:", min_value=1,max_value=len(df), step=1 )
         if st.button("등록 처리"):

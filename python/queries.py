@@ -109,7 +109,7 @@ def get_popular_stocks_by_age():
     s.stock_code, 
     s.stock_name, 
     COUNT(w.member_id) AS '관심 회원 수',
-    RANK() OVER (PARTITION BY FLOOR(TIMESTAMPDIFF(YEAR, m.birth_date, CURDATE()) / 10) * 10 ORDER BY COUNT(*) DESC) as ranking
+    ROW_NUMBER() OVER (PARTITION BY FLOOR(TIMESTAMPDIFF(YEAR, m.birth_date, CURDATE()) / 10) * 10 ORDER BY COUNT(*) DESC) as ranking
     FROM WATCHLIST w
     INNER JOIN STOCK s
     ON w.stock_code = s.stock_code
@@ -118,7 +118,7 @@ def get_popular_stocks_by_age():
     GROUP BY 
     FLOOR(TIMESTAMPDIFF(YEAR, m.birth_date, CURDATE()) / 10) * 10,
     s.stock_code) s
-    where ranking=1
+    where ranking<=3
     order by `연령대`;  
     """)
 
