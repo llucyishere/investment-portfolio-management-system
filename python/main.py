@@ -1,4 +1,4 @@
-from queries import (get_transaction_history, get_watchlist, get_invested_stocks, 
+from queries import (get_transaction_history, get_watchlist, get_invested_stocks, get_current_holdings,
                      get_popular_stocks_by_age, insert_transaction_history, check_stock, 
                      insert_watchlist, delete_transaction_history, delete_watchlist, 
                      register_member, check_member, login)
@@ -47,6 +47,13 @@ while True:
                 print(f"거래 유형: {t_type}")
                 print(f"거래 수량: {t_amount}")
                 print(f"거래 가격(1주): {t_price}")
+                print('-'*25)
+            result2=get_current_holdings(login_member_id)
+            print("========= 현 보유 내역 ========")
+            for row in result2:
+                print(f"종목코드: {row[0]}")
+                print(f"종목명: {row[1]}")
+                print(f"보유 수량: {row[2]}")
                 print('-'*25)
             
     elif choice=="2":

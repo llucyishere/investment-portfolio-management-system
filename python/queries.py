@@ -26,6 +26,30 @@ def get_transaction_history(member_id):
 
     return result
 
+# 사용자의 현재 투자 현황 조회 
+def get_current_holdings(member_id):
+    conn=get_connection()
+    cursor=conn.cursor()
+
+    cursor.execute("""SELECT a.stock_code, b.stock_name,
+    SUM(
+        CASE
+            WHEN a.transaction_type='buy' THEN a.quantity
+            ELSE -a.quantity
+        END
+    ) AS total_quantity
+    FROM transaction_history a INNER JOIN stock b ON a.stock_code = b.stock_code
+    WHERE member_id = %s
+    GROUP BY a.stock_code, b.stock_name
+    HAVING total_quantity > 0;""",(member_id,))
+
+    result=cursor.fetchall()
+
+    cursor.close()
+    conn.close()
+
+    return result 
+
 # 특정 회원의 관심 종목 조회 
 def get_watchlist(member_id):
     conn=get_connection()
@@ -85,7 +109,7 @@ def get_popular_stocks_by_age():
     s.stock_code, 
     s.stock_name, 
     COUNT(w.member_id) AS '관심 회원 수',
-    RANK() OVER (PARTITION BY FLOOR(TIMESTAMPDIFF(YEAR, m.birth_date, CURDATE()) / 10) * 10 ORDER BY COUNT(*) DESC) as ranking
+    ROW_NUMBER() OVER (PARTITION BY FLOOR(TIMESTAMPDIFF(YEAR, m.birth_date, CURDATE()) / 10) * 10 ORDER BY COUNT(*) DESC) as ranking
     FROM WATCHLIST w
     INNER JOIN STOCK s
     ON w.stock_code = s.stock_code
@@ -94,7 +118,7 @@ def get_popular_stocks_by_age():
     GROUP BY 
     FLOOR(TIMESTAMPDIFF(YEAR, m.birth_date, CURDATE()) / 10) * 10,
     s.stock_code) s
-    where ranking=1
+    where ranking<=3
     order by `연령대`;  
     """)
 
