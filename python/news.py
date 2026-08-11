@@ -96,7 +96,7 @@ def get_recommended_news(stock):
     scores = scores[0]
 
     # 관련 뉴스 기준
-    threshold = 0.4
+    threshold = 0.2
 
     # 최종 결과를 저장할 리스트
     results = []
