@@ -4,6 +4,7 @@ from queries import (login, register_member, check_member
                      ,get_watchlist, insert_watchlist, delete_watchlist, check_stock, check_watchlist
                      ,get_popular_stocks_by_age, view_stocks 
                      ,stock_request, check_request, show_request, confirm_request)
+from news import get_recommended_news
 # 날짜 데이터 사용을 위함 
 from datetime import date 
 # UI 생성 
@@ -76,10 +77,11 @@ if st.sidebar.button("관심 종목 삭제"):
 page = st.session_state.get("page", "home")
 # 기본 시작 화면 
 if page=="home":
+    # 로그인 확인 
     if st.session_state.member_id:
         st.title(f"{st.session_state.email}님, 환영합니다!")
-
-        st.subheader("연령대별 최다 인기 종목 현황")
+    # 연령대별 인기 종목 확인 
+        st.subheader("연령대별 인기 종목 현황")
 
         result=get_popular_stocks_by_age()
         df=pd.DataFrame(result,
@@ -92,15 +94,34 @@ if page=="home":
 
         st.dataframe(df_age, hide_index=True)
 
-        df_age=df[df["연령대"]==age].sort_values("관심 인원 수", ascending=True)
-        plt.barh(df_age["종목명"], df_age["관심 인원 수"])
-        plt.xlabel("관심 인원 수")
-        plt.gca().xaxis.set_major_locator(MultipleLocator(1))
-        st.pyplot(plt)
+        # 시각화 
+        with st.expander("그래프로 보기"):
+            df_age=df[df["연령대"]==age].sort_values("관심 인원 수", ascending=True)
+            plt.barh(df_age["종목명"], df_age["관심 인원 수"])
+            plt.xlabel("관심 인원 수")
+            plt.gca().xaxis.set_major_locator(MultipleLocator(1))
+            st.pyplot(plt)
 
+        # 뉴스 검색 기능 
+        st.subheader("실시간 뉴스 검색")
+        stock = st.text_input("검색할 종목을 입력하세요.:")
+        if st.button("검색하기"):
+            if not stock.strip():
+                st.warning("검색할 종목을 입력해주세요.")
+            else:
+                result = get_recommended_news(stock)
+                st.write(f"- {stock} 뉴스 검색 결과 ")
+                if result:
+                    for title, link, final_score, keyword_score in result:
+                        st.write(f"[{title}]({link})")
+                        # st.write(f"{final_score}")
+                        # st.write(f"{keyword_score}")
+                else:
+                    st.write("현재 관련 뉴스가 없습니다.")
     else:
         st.title("주렁주렁")
         st.write("개인 투자 포트폴리오 관리 웹 서비스입니다. 로그인 후 기능들을 이용할 수 있습니다.")
+
 # 회원 가입 화면 
 if page=="register_member":
     st.title("회원 가입")
@@ -229,6 +250,18 @@ if page=="watchlist":
             df=df.drop(columns=["관심 목록 ID"])
             df.insert(0,"등록 순번",range(1,len(df)+1))
             st.dataframe(df, hide_index=True)
+
+            # 관심 종목 뉴스 조회 
+            st.subheader("관심 종목 뉴스 보기")
+            stock=st.selectbox("검색할 종목을 선택하세요.",df["종목명"])
+            if st.button("검색하기"):
+                results=get_recommended_news(stock)
+                if results:
+                    st.write(f"- {stock} 관련 뉴스")
+                    for title, link, final_score, keyword_score in results:
+                        st.write(f"[{title}]({link})")
+                else:
+                    st.write("현재는 관련 뉴스가 없습니다. ")              
         else:
             st.write("저장된 관심 종목이 없습니다.")
 
